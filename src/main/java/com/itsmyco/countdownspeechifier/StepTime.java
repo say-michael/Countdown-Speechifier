@@ -23,5 +23,12 @@ public class StepTime {
         return phrase;
     }
 
-
+    @Override
+    public String toString() {
+        return "StepTime{" +
+                "heading='" + heading + '\'' +
+                ", seconds=" + seconds +
+                ", phrase='" + phrase + '\'' +
+                '}';
+    }
 }

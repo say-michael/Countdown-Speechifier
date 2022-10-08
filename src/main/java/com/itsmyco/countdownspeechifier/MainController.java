@@ -1,5 +1,10 @@
 package com.itsmyco.countdownspeechifier;
 
+import io.github.jonelo.jAdapterForNativeTTS.engines.SpeechEngine;
+import io.github.jonelo.jAdapterForNativeTTS.engines.SpeechEngineNative;
+import io.github.jonelo.jAdapterForNativeTTS.engines.Voice;
+import io.github.jonelo.jAdapterForNativeTTS.engines.VoicePreferences;
+import io.github.jonelo.jAdapterForNativeTTS.engines.exceptions.NotSupportedOperatingSystemException;
 import javafx.animation.Interpolator;
 import javafx.animation.PathTransition;
 import javafx.beans.property.BooleanProperty;
@@ -9,11 +14,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class MainController {
     @FXML
@@ -43,6 +52,11 @@ public class MainController {
 
     @FXML
     private void initialize(){
+
+        // We want to find a voice according our preferences
+        voicePreferences.setLanguage("en"); //  ISO-639-1
+        voicePreferences.setCountry("GB"); // ISO 3166-1 Alpha-2 code
+        voicePreferences.setGender(VoicePreferences.Gender.MALE);
 
         step1Flds = new TextField[]{step1heading, step1Min, step1Max, step1SpokenPhrase};
         step2Flds = new TextField[]{step2heading, step2Min, step2Max, step2SpokenPhrase};
@@ -83,6 +97,10 @@ public class MainController {
     }
 
     public void onSaveSettings(){
+        settings.save(makeSteps());
+    }
+
+    private Step[] makeSteps(){
         Step[] steps = new Step[4];
         steps[0] = new Step(
                 step1Flds[0].getText(),
@@ -108,11 +126,18 @@ public class MainController {
                 Integer.parseInt(step4Flds[2].getText()),
                 step4Flds[3].getText()
         );
-
-        settings.save(steps);
+        return steps;
     }
 
-    @FXML private Text startText;
+    public void onMaleVoice(){
+        voicePreferences.setGender(VoicePreferences.Gender.MALE);
+        maleText.setFont(new Font("", 2));
+    }
+    public void onFemaleVoice(){
+        voicePreferences.setGender(VoicePreferences.Gender.FEMALE);
+    }
+
+    @FXML private Text startText, maleText, femaleText;
     public void onStart(){
 
         if (startText.getText().contentEquals("STOP")){
@@ -147,19 +172,19 @@ public class MainController {
 
         heading.setText("Heading");
 
-        int[] minMax1 = {Integer.parseInt(step1Min.getText()), Integer.parseInt(step1Max.getText())};
-        int[] minMax2 = {Integer.parseInt(step2Min.getText()), Integer.parseInt(step2Max.getText())};
-        int[] minMax3 = {Integer.parseInt(step3Min.getText()), Integer.parseInt(step3Max.getText())};
-        int[] minMax4 = {Integer.parseInt(step4Min.getText()), Integer.parseInt(step4Max.getText())};
+//        int[] minMax1 = {Integer.parseInt(step1Min.getText()), Integer.parseInt(step1Max.getText())};
+//        int[] minMax2 = {Integer.parseInt(step2Min.getText()), Integer.parseInt(step2Max.getText())};
+//        int[] minMax3 = {Integer.parseInt(step3Min.getText()), Integer.parseInt(step3Max.getText())};
+//        int[] minMax4 = {Integer.parseInt(step4Min.getText()), Integer.parseInt(step4Max.getText())};
+//
+//        var countdown = new Countdown(minMax1, minMax2, minMax3, minMax4);
+//
+//        var step1 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
+//        var step2 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
+//        var step3 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
+//        var step4 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
 
-        var countdown = new Countdown(minMax1, minMax2, minMax3, minMax4);
-
-        var step1 = new StepTime(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-        var step2 = new StepTime(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-        var step3 = new StepTime(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-        var step4 = new StepTime(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-
-        new Thread(() -> startTheSteps(new StepTime[]{step1, step2, step3, step4})).start();
+        new Thread(() -> startTheSteps(makeSteps())).start();
 
     }
     @FXML
@@ -178,21 +203,52 @@ public class MainController {
 
     boolean stopProcessingSteps = false;
     private int stepIndex = 0;
-    private void startTheSteps(StepTime[] stepTimes){
+    private void startTheSteps(Step[] steps){
         while (!stopProcessingSteps){
             if (nextStep.get()){
                 nextStep.set(false);
-                var step = stepTimes[stepIndex++ % 4];
+
+                var step = steps[stepIndex++ % 4];
                 System.out.println(stepIndex + " = " + step);
+
                 heading.setText(step.getHeading());
-                speakStep(step.getPhrase());
-                countDownStep(step.getSeconds());
+                speakStep(step.getSpokenPhrase());
+
+                var seconds = new Random().nextInt(step.getMin(), step.getMax());
+                countDownStep(seconds);
             }
         }
     }
 
-    private void speakStep(String phrase){
+    private VoicePreferences voicePreferences = new VoicePreferences();
 
+    private void speakStep(String text){
+//        String text = "The answer to the ultimate question of life, the universe, and everything is 42";
+        try {
+            SpeechEngine speechEngine = SpeechEngineNative.getInstance();
+            speechEngine.say(text);
+
+            List<Voice> voices = speechEngine.getAvailableVoices();
+            if (voices.size() > 0) {
+                System.out.println("For now the following voices are supported:\n");
+                for (Voice voice : voices) {
+                    System.out.printf("%s\n", voice);
+                }
+                Voice voice = speechEngine.findVoiceByPreferences(voicePreferences);
+                // simple fallback just in case our preferences didn't match any voice
+                if (voice == null) {
+                    System.out.printf("Warning: Voice has not been found by the voice preferences %s\n", voicePreferences);
+                    voice = voices.get(0);
+                    System.out.printf("Using \"%s\" instead.\n", voice);
+                }
+                speechEngine.setVoice(voice.getName());
+            } else {
+                System.out.printf("Error: not even one voice have been found.\n");
+            }
+
+        } catch (NotSupportedOperatingSystemException | IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     private void animateTimeDot(int seconds){
@@ -221,6 +277,7 @@ public class MainController {
         stopProcessingSteps = true;
     }
     private final BooleanProperty nextStep = new SimpleBooleanProperty(true);
+
 
     private void countDownStep(int seconds){
         var time = LocalTime.now();

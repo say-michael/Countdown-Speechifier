@@ -44,4 +44,14 @@ public class Step {
     public void setSpokenPhrase(String spokenPhrase) {
         this.spokenPhrase = spokenPhrase;
     }
+
+    @Override
+    public String toString() {
+        return "Step{" +
+                "heading='" + heading + '\'' +
+                ", min=" + min +
+                ", max=" + max +
+                ", spokenPhrase='" + spokenPhrase + '\'' +
+                '}';
+    }
 }

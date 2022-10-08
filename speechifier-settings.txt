@@ -1,4 +1,4 @@
-Jump§0§60§Jump
+Jump§0§20§Jump
 Stand§20§40§Stand Up
 Eat§0§10§Eat Everything
 Rest§15§25§Just Relax

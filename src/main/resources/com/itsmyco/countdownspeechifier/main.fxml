@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
@@ -36,18 +39,41 @@
                   <Pane maxHeight="50.0" maxWidth="323.0" prefWidth="20.0" style="-fx-background-radius: 20; -fx-background-color: rgb(236,236,236);" visible="false" />
                   <HBox alignment="CENTER" spacing="10.0">
                      <children>
-                        <HBox fx:id="selectVoiceBtn" alignment="CENTER" maxHeight="10.0" maxWidth="50.0" minWidth="100.0" onMouseClicked="#onSelectVoice" onMouseEntered="#selectVoiceHover" onMouseExited="#selectVoiceHoverDone" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
+                        <StackPane>
                            <children>
-                              <StackPane>
+                              <HBox fx:id="selectVoiceBtn1" layoutX="10.0" layoutY="34.0" maxHeight="10.0" maxWidth="50.0" minHeight="60.0" minWidth="100.0" onMouseClicked="#onSelectVoice" onMouseEntered="#selectVoiceHover" onMouseExited="#selectVoiceHoverDone" opacity="0.48" spacing="5.0" style="-fx-background-color: white; -fx-background-radius: 16;" translateY="-14.0">
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
                                  <children>
-                                    <Text fill="#f8f8f8" strokeType="OUTSIDE" strokeWidth="0.0" text="Select Voice" />
+                                    <Text fx:id="maleText" onMouseClicked="#onMaleVoice" strokeType="OUTSIDE" strokeWidth="0.0" text="Male">
+                                       <cursor>
+                                          <Cursor fx:constant="HAND" />
+                                       </cursor>
+                                    </Text>
+                                    <Region prefHeight="200.0" prefWidth="200.0" />
+                                    <Line endX="-357.1025085449219" endY="-806.5232543945312" opacity="0.6" startX="-357.1025085449219" startY="-792.9628295898438" stroke="#bfbfbf" />
+                                    <Text fill="#8d8d8d" layoutX="18.0" layoutY="31.0" onMouseClicked="#onFemaleVoice" strokeType="OUTSIDE" strokeWidth="0.0" text="Female">
+                                       <cursor>
+                                          <Cursor fx:constant="HAND" />
+                                       </cursor>
+                                    </Text>
                                  </children>
-                              </StackPane>
+                              </HBox>
+                              <HBox fx:id="selectVoiceBtn" alignment="CENTER" maxHeight="10.0" maxWidth="50.0" minWidth="100.0" onMouseClicked="#onSelectVoice" onMouseEntered="#selectVoiceHover" onMouseExited="#selectVoiceHoverDone" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
+                                 <children>
+                                    <StackPane>
+                                       <children>
+                                          <Text fill="#f8f8f8" strokeType="OUTSIDE" strokeWidth="0.0" text="Select Voice" />
+                                       </children>
+                                    </StackPane>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                 </padding>
+                              </HBox>
                            </children>
-                           <padding>
-                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                           </padding>
-                        </HBox>
+                        </StackPane>
                         <HBox fx:id="startBtn" alignment="CENTER" layoutX="289.0" layoutY="10.0" minHeight="80.0" minWidth="80.0" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
                            <children>
                               <StackPane onMouseClicked="#onStart" onMouseEntered="#startHover" onMouseExited="#startHoverDone">
