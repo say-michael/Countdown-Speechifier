@@ -15,7 +15,23 @@ public class Countdown {
         this.step4Seconds = new Random().nextInt(step4MinMax[0], step4MinMax[1]);
     }
 
-    public void startCountDown(){
+    public int[] getSeconds(){
+        return new int[]{step1Seconds, step2Seconds, step3Seconds, step4Seconds};
+    }
 
+    public int getStep1Seconds() {
+        return step1Seconds;
+    }
+
+    public int getStep2Seconds() {
+        return step2Seconds;
+    }
+
+    public int getStep3Seconds() {
+        return step3Seconds;
+    }
+
+    public int getStep4Seconds() {
+        return step4Seconds;
     }
 }
