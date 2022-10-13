@@ -5,12 +5,16 @@ import io.github.jonelo.jAdapterForNativeTTS.engines.SpeechEngineNative;
 import io.github.jonelo.jAdapterForNativeTTS.engines.Voice;
 import io.github.jonelo.jAdapterForNativeTTS.engines.VoicePreferences;
 import io.github.jonelo.jAdapterForNativeTTS.engines.exceptions.NotSupportedOperatingSystemException;
-import javafx.animation.Interpolator;
-import javafx.animation.PathTransition;
+import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -20,9 +24,9 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainController {
     @FXML
@@ -39,9 +43,11 @@ public class MainController {
 
     TextField[] step1Flds, step2Flds, step3Flds, step4Flds;
 
+    TextField[] allMinMaxFields;
+
     TextField[][] allFlds;
     @FXML
-    HBox selectVoiceBtn, saveSettingsBtn, startBtn, stopBtn;
+    HBox selectVoiceBtn, saveSettingsBtn, startBtn;
 
     @FXML
     BorderPane displayScreen;
@@ -50,13 +56,12 @@ public class MainController {
 
     @FXML StackPane timeView;
 
+    @FXML BorderPane appScreen;
+
     @FXML
     private void initialize(){
 
-        // We want to find a voice according our preferences
-        voicePreferences.setLanguage("en"); //  ISO-639-1
-        voicePreferences.setCountry("GB"); // ISO 3166-1 Alpha-2 code
-        voicePreferences.setGender(VoicePreferences.Gender.MALE);
+        speechEngine.setVoice(voiceList.get(0).getName());
 
         step1Flds = new TextField[]{step1heading, step1Min, step1Max, step1SpokenPhrase};
         step2Flds = new TextField[]{step2heading, step2Min, step2Max, step2SpokenPhrase};
@@ -64,7 +69,14 @@ public class MainController {
         step4Flds = new TextField[]{step4heading, step4Min, step4Max, step4SpokenPhrase};
 
         allFlds = new TextField[][]{step1Flds, step2Flds, step3Flds, step4Flds};
+        allMinMaxFields = new TextField[]{step1Min, step1Max, step2Min, step2Max, step3Min, step3Max, step4Min, step4Max};
 
+        int fldIndex = 0;
+        for (TextField field : allMinMaxFields) {
+            final int index = fldIndex;
+            field.focusedProperty().addListener((ob, oldValue, n) -> {if (oldValue) validateNumberTextField(field, index);});
+            fldIndex++;
+        }
         var steps = settings.load();
         if (steps != null){
             step1Flds[0].setText(steps[0].getHeading());
@@ -88,20 +100,163 @@ public class MainController {
             step4Flds[3].setText(steps[3].getSpokenPhrase());
         }
 
+        choiceDialog.selectedItemProperty().addListener((o, oldValue, newValue) -> {
+            selectedVoice = newValue;
+            speechEngine.setVoice(voiceList.get(voiceDescriptions.indexOf(newValue)).getName());
+            try {
+                speechEngine.say("This is my voice.");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private void validateNumberTextField(TextField fld, int fldIndex){
+        try {
+            var number = Integer.parseInt(fld.getText());
+            if (number < 0) fld.setText("0");
+            if (number > 999) fld.setText("999");
+
+            fld.setBorder(null);
+            fld.setEffect(null);
+
+            TextField siblingFld;
+
+            if (fld.getPromptText().equalsIgnoreCase("min")) {
+                siblingFld = allMinMaxFields[fldIndex + 1];
+            } else {
+                siblingFld = allMinMaxFields[fldIndex - 1];
+            }
+            siblingFld.setBorder(null);
+            siblingFld.setEffect(null);
+
+            if (fld.getPromptText().equalsIgnoreCase("min")) {
+                var maxNumber = Integer.parseInt(allMinMaxFields[fldIndex + 1].getText());
+                if (number > maxNumber){
+                    fld.setBorder(new Border(new BorderStroke(
+                            Color.RED,
+                            BorderStrokeStyle.SOLID,
+                            new CornerRadii(20),
+                            new BorderWidths(0.5)
+                    )));
+                    siblingFld.setBorder(new Border(new BorderStroke(
+                            Color.RED,
+                            BorderStrokeStyle.SOLID,
+                            new CornerRadii(20),
+                            new BorderWidths(0.5)
+                    )));
+                    var ds = new DropShadow();
+                    ds.setRadius(5.0);
+                    ds.setColor(Color.rgb(255,0,0, 0.2));
+                    fld.setEffect(ds);
+                    siblingFld.setEffect(ds);
+                }
+                System.out.println("Min Clicked");
+            } else {
+                System.out.println("Max Clicked");
+                var minNumber = Integer.parseInt(allMinMaxFields[fldIndex - 1].getText());
+                if (number < minNumber){
+                    fld.setBorder(new Border(new BorderStroke(
+                            Color.RED,
+                            BorderStrokeStyle.SOLID,
+                            new CornerRadii(20),
+                            new BorderWidths(0.5)
+                    )));
+                    siblingFld.setBorder(new Border(new BorderStroke(
+                            Color.RED,
+                            BorderStrokeStyle.SOLID,
+                            new CornerRadii(20),
+                            new BorderWidths(0.5)
+                    )));
+                    var ds = new DropShadow();
+                    ds.setRadius(5.0);
+                    ds.setColor(Color.rgb(255,0,0, 0.2));
+                    fld.setEffect(ds);
+                    siblingFld.setEffect(ds);
+                }
+            }
+        } catch (NumberFormatException e) {
+            fld.setText("");
+        }
+    }
+
+    private void toggleInValidField(boolean on, TextField fld){
+        if (on){
+            fld.setBorder(new Border(new BorderStroke(
+                    Color.RED,
+                    BorderStrokeStyle.SOLID,
+                    new CornerRadii(20),
+                    new BorderWidths(3)
+            )));
+        } else {
+            fld.setBorder(null);
+        }
     }
 
     private final Settings settings = new Settings();
 
-    public void onSelectVoice(){
+    private boolean isVoiceOptionsShown = false;
 
+    private final VoicePreferences voicePreferences = new VoicePreferences();
+    private SpeechEngine speechEngine;
+
+    {
+        try {
+            speechEngine = SpeechEngineNative.getInstance();
+        } catch (NotSupportedOperatingSystemException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
+    private final List<Voice> voiceList = speechEngine.getAvailableVoices();
+
+
+    private final List<String> voiceDescriptions = voiceList.stream().map(Voice::getDescription).toList();
+
+    private String selectedVoice = voiceDescriptions.get(0);
+    private final ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(selectedVoice, voiceDescriptions);
+    @FXML HBox voiceOptions;
+    public void onSelectVoice(){
+
+        choiceDialog.showAndWait();
+
+
+//        var sc = new Timeline();
+//        if (isVoiceOptionsShown){
+//            sc.stop();
+//            sc.getKeyFrames().clear();
+//            sc.getKeyFrames().add(
+//                    new KeyFrame(Duration.millis(1000),
+//                            new KeyValue(voiceOptions.prefHeightProperty(),0),
+//                            new KeyValue(voiceOptions.translateYProperty(),-5)
+//                    )
+//            );
+//
+//            isVoiceOptionsShown = false;
+//        } else {
+//            // show voice options
+//            sc.stop();
+//            sc.getKeyFrames().clear();
+//            sc.getKeyFrames().add(
+//                    new KeyFrame(Duration.millis(1000),
+//                            new KeyValue(voiceOptions.prefHeightProperty(),60),
+//                            new KeyValue(voiceOptions.translateYProperty(),-14)
+//                    )
+//            );
+//            isVoiceOptionsShown = true;
+//        }
+//        sc.play();
+    }
+    @FXML Text saveSettingsText;
+
     public void onSaveSettings(){
+        if (verifyAllFieldsEntered()) saveSettingsText.setText("Saved");
         settings.save(makeSteps());
     }
 
     private Step[] makeSteps(){
         Step[] steps = new Step[4];
+
         steps[0] = new Step(
                 step1Flds[0].getText(),
                 Integer.parseInt(step1Flds[1].getText()),
@@ -131,13 +286,26 @@ public class MainController {
 
     public void onMaleVoice(){
         voicePreferences.setGender(VoicePreferences.Gender.MALE);
-        maleText.setFont(new Font("", 2));
+        maleText.setFont(new Font("Arial Rounded MT Bold", 13));
+        femaleText.setFont(new Font("System", 13));
+        maleText.setFill(Color.BLACK);
+        femaleText.setFill(new Color(0.5529, 0.5529, 0.5529, 1.0));
+
     }
     public void onFemaleVoice(){
         voicePreferences.setGender(VoicePreferences.Gender.FEMALE);
+        femaleText.setFont(new Font("Arial Rounded MT Bold", 13));
+        maleText.setFont(new Font("System", 13));
+        femaleText.setFill(Color.BLACK);
+        maleText.setFill(new Color(0.5529, 0.5529, 0.5529, 1.0));
     }
 
+    private Thread runningStepsThread;
     @FXML private Text startText, maleText, femaleText;
+
+    @FXML
+    ChoiceBox<String> voiceChoices;
+
     public void onStart(){
 
         if (startText.getText().contentEquals("STOP")){
@@ -145,9 +313,11 @@ public class MainController {
             return;
         }
 
-        if(!verifyAllFieldsEntered()){
-            return;
-        }
+//        if(!verifyAllFieldsEntered()){
+//            return;
+//        }
+
+//        if (stepsFin)
 
         stopProcessingSteps = false;
 
@@ -155,36 +325,17 @@ public class MainController {
         stepsView.setVisible(false);
         selectVoiceBtn.setVisible(false);
         saveSettingsBtn.setVisible(false);
+        voiceOptions.setVisible(false);
         startText.setText("STOP");
 
         // show views
         timeView.setVisible(true);
-
-//        var pane = (Pane) timeDot.getParent();
-//        var c = pane.getChildren();
-//        timeDot.translateXProperty().addListener(observable -> {
-////            var ci = new Circle(6);
-//            var ci = new Rectangle(6,6, timeDot.getTranslateX(),timeDot.getTranslateY());
-////            ci.setCenterX(timeDot.getTranslateX());
-////            ci.setCenterY(timeDot.getTranslateY());
-//            c.add(ci);
-//        });
-
         heading.setText("Heading");
 
-//        int[] minMax1 = {Integer.parseInt(step1Min.getText()), Integer.parseInt(step1Max.getText())};
-//        int[] minMax2 = {Integer.parseInt(step2Min.getText()), Integer.parseInt(step2Max.getText())};
-//        int[] minMax3 = {Integer.parseInt(step3Min.getText()), Integer.parseInt(step3Max.getText())};
-//        int[] minMax4 = {Integer.parseInt(step4Min.getText()), Integer.parseInt(step4Max.getText())};
-//
-//        var countdown = new Countdown(minMax1, minMax2, minMax3, minMax4);
-//
-//        var step1 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-//        var step2 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-//        var step3 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-//        var step4 = new Step(step1heading.getText(), countdown.getStep1Seconds(), step1SpokenPhrase.getText());
-
-        new Thread(() -> startTheSteps(makeSteps())).start();
+        stepIndex = 0;
+//        runningStepsThread.start();
+        runningStepsThread = new Thread(() -> startTheSteps(makeSteps()));
+       runningStepsThread.start();
 
     }
     @FXML
@@ -203,7 +354,7 @@ public class MainController {
 
     boolean stopProcessingSteps = false;
     private int stepIndex = 0;
-    private void startTheSteps(Step[] steps){
+    private synchronized void startTheSteps(Step[] steps){
         while (!stopProcessingSteps){
             if (nextStep.get()){
                 nextStep.set(false);
@@ -212,43 +363,39 @@ public class MainController {
                 System.out.println(stepIndex + " = " + step);
 
                 heading.setText(step.getHeading());
-                speakStep(step.getSpokenPhrase());
+
+                try {
+                    speechEngine.say(step.getSpokenPhrase());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (step.getMin() < 0 || step.getMax() < 0) {
+                    continue; //skip
+                }
+
+                if (step.getMax() == 0) continue;
 
                 var seconds = new Random().nextInt(step.getMin(), step.getMax());
+
+                if (seconds == 0) continue;
+
                 countDownStep(seconds);
             }
         }
     }
 
-    private VoicePreferences voicePreferences = new VoicePreferences();
+
+
+
 
     private void speakStep(String text){
-//        String text = "The answer to the ultimate question of life, the universe, and everything is 42";
         try {
-            SpeechEngine speechEngine = SpeechEngineNative.getInstance();
             speechEngine.say(text);
-
-            List<Voice> voices = speechEngine.getAvailableVoices();
-            if (voices.size() > 0) {
-                System.out.println("For now the following voices are supported:\n");
-                for (Voice voice : voices) {
-                    System.out.printf("%s\n", voice);
-                }
-                Voice voice = speechEngine.findVoiceByPreferences(voicePreferences);
-                // simple fallback just in case our preferences didn't match any voice
-                if (voice == null) {
-                    System.out.printf("Warning: Voice has not been found by the voice preferences %s\n", voicePreferences);
-                    voice = voices.get(0);
-                    System.out.printf("Using \"%s\" instead.\n", voice);
-                }
-                speechEngine.setVoice(voice.getName());
-            } else {
-                System.out.printf("Error: not even one voice have been found.\n");
-            }
-
-        } catch (NotSupportedOperatingSystemException | IOException e) {
-            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
     private void animateTimeDot(int seconds){
@@ -263,6 +410,8 @@ public class MainController {
     @FXML private Text heading;
     @FXML Text timeText;
     public void onStop(){
+        runningStepsThread.interrupt();
+        runningStepsThread = null;
         // hide views
         timeView.setVisible(false);
 
@@ -270,11 +419,13 @@ public class MainController {
         stepsView.setVisible(true);
         selectVoiceBtn.setVisible(true);
         saveSettingsBtn.setVisible(true);
+        voiceOptions.setVisible(true);
 
         startText.setText("START");
         heading.setText("SETTINGS");
 
         stopProcessingSteps = true;
+
     }
     private final BooleanProperty nextStep = new SimpleBooleanProperty(true);
 
@@ -284,13 +435,29 @@ public class MainController {
         var timeDone = time.plusSeconds(seconds);
 
         var currentSec = seconds;
+        timeText.setText(String.valueOf(currentSec));
+
+
+        try {
+            if (seconds < 4){
+                Thread.sleep(1000);
+            } else {
+                Thread.sleep(500);
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         while (true){
-            var tmp = LocalTime.now();
-            if (tmp.isAfter(timeDone)){
-                timeText.setText(String.valueOf(currentSec--));
+            if (stopProcessingSteps){
                 break;
             }
+            var tmp = LocalTime.now();
+            if (tmp.isAfter(timeDone)){
+                timeText.setText(String.valueOf(currentSec));
+                break;
+            }
+
             timeText.setText(String.valueOf(currentSec--));
             try {
                 Thread.sleep(1000);
@@ -313,17 +480,11 @@ public class MainController {
         startBtn.setBackground(new Background(new BackgroundFill(Color.web("#127369"), new CornerRadii(50, true), null)));
     }
 
-    public void stopHover(){
-
-    }
 
     public void startHoverDone(){
         startBtn.setBackground(new Background(new BackgroundFill(Color.web("#10403b"), new CornerRadii(50, true), null)));
     }
 
-    public void stopHoverDone(){
-
-    }
 
     public void selectVoiceHover(){
         btnHover(selectVoiceBtn);
