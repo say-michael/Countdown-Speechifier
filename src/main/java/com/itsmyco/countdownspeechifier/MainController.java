@@ -6,13 +6,12 @@ import io.github.jonelo.jAdapterForNativeTTS.engines.Voice;
 import io.github.jonelo.jAdapterForNativeTTS.engines.VoicePreferences;
 import io.github.jonelo.jAdapterForNativeTTS.engines.exceptions.NotSupportedOperatingSystemException;
 import javafx.animation.*;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.*;
@@ -20,13 +19,17 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainController {
     @FXML
@@ -69,34 +72,29 @@ public class MainController {
         step4Flds = new TextField[]{step4heading, step4Min, step4Max, step4SpokenPhrase};
 
         allFlds = new TextField[][]{step1Flds, step2Flds, step3Flds, step4Flds};
+
         allMinMaxFields = new TextField[]{step1Min, step1Max, step2Min, step2Max, step3Min, step3Max, step4Min, step4Max};
 
-        int fldIndex = 0;
-        for (TextField field : allMinMaxFields) {
-            final int index = fldIndex;
-            field.focusedProperty().addListener((ob, oldValue, n) -> {if (oldValue) validateNumberTextField(field, index);});
-            fldIndex++;
-        }
         var steps = settings.load();
         if (steps != null){
             step1Flds[0].setText(steps[0].getHeading());
-            step1Flds[1].setText(String.valueOf(steps[0].getMin()));
-            step1Flds[2].setText(String.valueOf(steps[0].getMax()));
+            step1Flds[1].setText(String.valueOf(steps[0].getMin() < 0 ? "" : steps[0].getMin()));
+            step1Flds[2].setText(String.valueOf(steps[0].getMax() < 0 ? "" : steps[0].getMax()));
             step1Flds[3].setText(steps[0].getSpokenPhrase());
 
             step2Flds[0].setText(steps[1].getHeading());
-            step2Flds[1].setText(String.valueOf(steps[1].getMin()));
-            step2Flds[2].setText(String.valueOf(steps[1].getMax()));
+            step2Flds[1].setText(String.valueOf(steps[1].getMin() < 0 ? "" : steps[1].getMin()));
+            step2Flds[2].setText(String.valueOf(steps[1].getMax() < 0 ? "" : steps[1].getMax()));
             step2Flds[3].setText(steps[1].getSpokenPhrase());
 
             step3Flds[0].setText(steps[2].getHeading());
-            step3Flds[1].setText(String.valueOf(steps[2].getMin()));
-            step3Flds[2].setText(String.valueOf(steps[2].getMax()));
+            step3Flds[1].setText(String.valueOf(steps[2].getMin() < 0 ? "" : steps[2].getMin()));
+            step3Flds[2].setText(String.valueOf(steps[2].getMax() < 0 ? "" : steps[2].getMax()));
             step3Flds[3].setText(steps[2].getSpokenPhrase());
 
             step4Flds[0].setText(steps[3].getHeading());
-            step4Flds[1].setText(String.valueOf(steps[3].getMin()));
-            step4Flds[2].setText(String.valueOf(steps[3].getMax()));
+            step4Flds[1].setText(String.valueOf(steps[3].getMin() < 0 ? "" : steps[3].getMin()));
+            step4Flds[2].setText(String.valueOf(steps[3].getMax() < 0 ? "" : steps[3].getMax()));
             step4Flds[3].setText(steps[3].getSpokenPhrase());
         }
 
@@ -109,11 +107,34 @@ public class MainController {
                 throw new RuntimeException(e);
             }
         });
+        var text = new Text("Select Voice");
+        text.setFont(new Font(15));
+        var st = new StackPane(text);
+        st.setPadding(new Insets(20, 0,10, 0));
+
+        choiceDialog.getDialogPane().setHeader(st);
+        choiceDialog.setTitle("Voice Settings");
+
+//        for (TextField field : allMinMaxFields) {
+//          field.setText("0");
+//        }
+
+        int fldIndex = 0;
+        for (TextField field : allMinMaxFields) {
+            final int index = fldIndex;
+            field.focusedProperty().addListener((ob, oldValue, n) -> {if (oldValue) validateNumberTextField(field, index);});
+            fldIndex++;
+        }
+//        for (TextField field : allMinMaxFields) {
+//            field.setText("");
+//        }
+
     }
 
     private void validateNumberTextField(TextField fld, int fldIndex){
         try {
             var number = Integer.parseInt(fld.getText());
+
             if (number < 0) fld.setText("0");
             if (number > 999) fld.setText("999");
 
@@ -176,7 +197,8 @@ public class MainController {
                 }
             }
         } catch (NumberFormatException e) {
-            fld.setText("");
+//            fld.setText("");
+            e.printStackTrace();
         }
     }
 
@@ -250,7 +272,7 @@ public class MainController {
     @FXML Text saveSettingsText;
 
     public void onSaveSettings(){
-        if (verifyAllFieldsEntered()) saveSettingsText.setText("Saved");
+        saveSettingsText.setText("Saved");
         settings.save(makeSteps());
     }
 
@@ -258,28 +280,28 @@ public class MainController {
         Step[] steps = new Step[4];
 
         steps[0] = new Step(
-                step1Flds[0].getText(),
-                Integer.parseInt(step1Flds[1].getText()),
-                Integer.parseInt(step1Flds[2].getText()),
-                step1Flds[3].getText()
+                step1Flds[0].getText().isBlank() ? "~" : step1Flds[0].getText(),
+                Integer.parseInt(step1Flds[1].getText().isBlank() ? "-1" : step1Flds[1].getText()),
+                Integer.parseInt(step1Flds[2].getText().isBlank() ? "-1" : step1Flds[2].getText()),
+                step1Flds[3].getText().isBlank() ? "~" : step1Flds[3].getText()
         );
         steps[1] = new Step(
-                step2Flds[0].getText(),
-                Integer.parseInt(step2Flds[1].getText()),
-                Integer.parseInt(step2Flds[2].getText()),
-                step2Flds[3].getText()
+                step2Flds[0].getText().isBlank() ? "~" : step2Flds[0].getText(),
+                Integer.parseInt(step2Flds[1].getText().isBlank() ? "-1" : step2Flds[1].getText()),
+                Integer.parseInt(step2Flds[2].getText().isBlank() ? "-1" : step2Flds[2].getText()),
+                step2Flds[3].getText().isBlank() ? "~" : step2Flds[3].getText()
         );
         steps[2] = new Step(
-                step3Flds[0].getText(),
-                Integer.parseInt(step3Flds[1].getText()),
-                Integer.parseInt(step3Flds[2].getText()),
-                step3Flds[3].getText()
+                step3Flds[0].getText().isBlank() ? "~" : step3Flds[0].getText(),
+                Integer.parseInt(step3Flds[1].getText().isBlank() ? "-1" : step3Flds[1].getText()),
+                Integer.parseInt(step3Flds[2].getText().isBlank() ? "-1" : step3Flds[2].getText()),
+                step3Flds[3].getText().isBlank() ? "~" : step3Flds[3].getText()
         );
         steps[3] = new Step(
-                step4Flds[0].getText(),
-                Integer.parseInt(step4Flds[1].getText()),
-                Integer.parseInt(step4Flds[2].getText()),
-                step4Flds[3].getText()
+                step4Flds[0].getText().isBlank() ? "~" : step4Flds[0].getText(),
+                Integer.parseInt(step4Flds[1].getText().isBlank() ? "-1" : step4Flds[1].getText()),
+                Integer.parseInt(step4Flds[2].getText().isBlank() ? "-1" : step4Flds[2].getText()),
+                step4Flds[3].getText().isBlank() ? "~" : step4Flds[3].getText()
         );
         return steps;
     }
@@ -319,7 +341,7 @@ public class MainController {
 
 //        if (stepsFin)
 
-        stopProcessingSteps = false;
+        stopProcessingSteps.set(false);
 
         // hide views
         stepsView.setVisible(false);
@@ -333,9 +355,26 @@ public class MainController {
         heading.setText("Heading");
 
         stepIndex = 0;
-//        runningStepsThread.start();
-        runningStepsThread = new Thread(() -> startTheSteps(makeSteps()));
-       runningStepsThread.start();
+        executor.execute(()-> startTheSteps(makeSteps()));
+//        f = executor.execute(()-> startTheSteps(makeSteps()));
+    }
+    static final ExecutorService executor = Executors.newCachedThreadPool();
+    private Future<?> f;
+    public void onStop(){
+//        executor.submit(()->{}).
+//        f.cancel(true);
+        stopProcessingSteps.set(true);
+        // hide views
+        timeView.setVisible(false);
+
+        // show views
+        stepsView.setVisible(true);
+        selectVoiceBtn.setVisible(true);
+        saveSettingsBtn.setVisible(true);
+        voiceOptions.setVisible(true);
+
+        startText.setText("START");
+        heading.setText("SETTINGS");
 
     }
     @FXML
@@ -352,15 +391,38 @@ public class MainController {
         return true;
     }
 
-    boolean stopProcessingSteps = false;
+    final AtomicBoolean stopProcessingSteps = new AtomicBoolean(false);
     private int stepIndex = 0;
-    private synchronized void startTheSteps(Step[] steps){
-        while (!stopProcessingSteps){
+    private synchronized void startTheSteps(Step[] steps)  {
+        while (!stopProcessingSteps.get()){
             if (nextStep.get()){
                 nextStep.set(false);
 
                 var step = steps[stepIndex++ % 4];
                 System.out.println(stepIndex + " = " + step);
+
+                if (step.getMin() < 0 || step.getMax() <= 0) {
+                    nextStep.set(true);
+                    continue; //skip
+                }
+
+                if (step.getMin() > step.getMax()) {
+                    nextStep.set(true);
+                    continue; //skip
+                }
+
+                int seconds;
+
+                if (step.getMin() == step.getMax()) {
+                    seconds = new Random().nextInt(step.getMin());
+                } else {
+                    seconds = new Random().nextInt(step.getMin(), step.getMax());
+                }
+
+                if (seconds == 0) {
+                    nextStep.set(true);
+                    continue;
+                }
 
                 heading.setText(step.getHeading());
 
@@ -369,16 +431,6 @@ public class MainController {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                if (step.getMin() < 0 || step.getMax() < 0) {
-                    continue; //skip
-                }
-
-                if (step.getMax() == 0) continue;
-
-                var seconds = new Random().nextInt(step.getMin(), step.getMax());
-
-                if (seconds == 0) continue;
 
                 countDownStep(seconds);
             }
@@ -409,24 +461,7 @@ public class MainController {
 
     @FXML private Text heading;
     @FXML Text timeText;
-    public void onStop(){
-        runningStepsThread.interrupt();
-        runningStepsThread = null;
-        // hide views
-        timeView.setVisible(false);
 
-        // show views
-        stepsView.setVisible(true);
-        selectVoiceBtn.setVisible(true);
-        saveSettingsBtn.setVisible(true);
-        voiceOptions.setVisible(true);
-
-        startText.setText("START");
-        heading.setText("SETTINGS");
-
-        stopProcessingSteps = true;
-
-    }
     private final BooleanProperty nextStep = new SimpleBooleanProperty(true);
 
 
@@ -449,7 +484,7 @@ public class MainController {
         }
 
         while (true){
-            if (stopProcessingSteps){
+            if (stopProcessingSteps.get()){
                 break;
             }
             var tmp = LocalTime.now();

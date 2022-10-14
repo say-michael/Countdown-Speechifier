@@ -29,7 +29,9 @@ public class Settings {
                 int index = 0;
                 while (input.hasNextLine()){
                     var arr = input.nextLine().split("§");
-                    steps[index++] = new Step(arr[0], Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), arr[3]);
+                    var a = arr[0].equals("~") ? "" : arr[0];
+                    var d = arr[3].equals("~") ? "" : arr[3];
+                    steps[index++] = new Step(a, Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), d);
                 }
                 input.close();
             } catch (FileNotFoundException e) {
