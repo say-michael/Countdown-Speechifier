@@ -5,7 +5,9 @@ import io.github.jonelo.jAdapterForNativeTTS.engines.SpeechEngineNative;
 import io.github.jonelo.jAdapterForNativeTTS.engines.Voice;
 import io.github.jonelo.jAdapterForNativeTTS.engines.VoicePreferences;
 import io.github.jonelo.jAdapterForNativeTTS.engines.exceptions.NotSupportedOperatingSystemException;
-import javafx.animation.*;
+import javafx.animation.Interpolator;
+import javafx.animation.PathTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -19,7 +21,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainController {
     @FXML
@@ -131,6 +133,23 @@ public class MainController {
 
     }
 
+    private boolean checkValidationOfMinMax(int fldIndex){
+        var fld = allMinMaxFields[fldIndex];
+        try{
+            var number = Integer.parseInt(fld.getText());
+
+            if (fld.getPromptText().equalsIgnoreCase("min")) {
+                var maxNumber = Integer.parseInt(allMinMaxFields[fldIndex + 1].getText());
+                return number <= maxNumber;
+            } else {
+                var minNumber = Integer.parseInt(allMinMaxFields[fldIndex - 1].getText());
+                return number >= minNumber;
+            }
+        } catch (NumberFormatException e){
+            return true;
+        }
+    }
+
     private void validateNumberTextField(TextField fld, int fldIndex){
         try {
             var number = Integer.parseInt(fld.getText());
@@ -198,7 +217,7 @@ public class MainController {
             }
         } catch (NumberFormatException e) {
 //            fld.setText("");
-            e.printStackTrace();
+            System.err.println("Empty String");
         }
     }
 
@@ -231,7 +250,6 @@ public class MainController {
     }
 
     private final List<Voice> voiceList = speechEngine.getAvailableVoices();
-
 
     private final List<String> voiceDescriptions = voiceList.stream().map(Voice::getDescription).toList();
 
@@ -279,25 +297,25 @@ public class MainController {
     private Step[] makeSteps(){
         Step[] steps = new Step[4];
 
-        steps[0] = new Step(
+        steps[0] = new Step(1,
                 step1Flds[0].getText().isBlank() ? "~" : step1Flds[0].getText(),
                 Integer.parseInt(step1Flds[1].getText().isBlank() ? "-1" : step1Flds[1].getText()),
                 Integer.parseInt(step1Flds[2].getText().isBlank() ? "-1" : step1Flds[2].getText()),
                 step1Flds[3].getText().isBlank() ? "~" : step1Flds[3].getText()
         );
-        steps[1] = new Step(
+        steps[1] = new Step(2,
                 step2Flds[0].getText().isBlank() ? "~" : step2Flds[0].getText(),
                 Integer.parseInt(step2Flds[1].getText().isBlank() ? "-1" : step2Flds[1].getText()),
                 Integer.parseInt(step2Flds[2].getText().isBlank() ? "-1" : step2Flds[2].getText()),
                 step2Flds[3].getText().isBlank() ? "~" : step2Flds[3].getText()
         );
-        steps[2] = new Step(
+        steps[2] = new Step(3,
                 step3Flds[0].getText().isBlank() ? "~" : step3Flds[0].getText(),
                 Integer.parseInt(step3Flds[1].getText().isBlank() ? "-1" : step3Flds[1].getText()),
                 Integer.parseInt(step3Flds[2].getText().isBlank() ? "-1" : step3Flds[2].getText()),
                 step3Flds[3].getText().isBlank() ? "~" : step3Flds[3].getText()
         );
-        steps[3] = new Step(
+        steps[3] = new Step(4,
                 step4Flds[0].getText().isBlank() ? "~" : step4Flds[0].getText(),
                 Integer.parseInt(step4Flds[1].getText().isBlank() ? "-1" : step4Flds[1].getText()),
                 Integer.parseInt(step4Flds[2].getText().isBlank() ? "-1" : step4Flds[2].getText()),
@@ -335,9 +353,9 @@ public class MainController {
             return;
         }
 
-//        if(!verifyAllFieldsEntered()){
-//            return;
-//        }
+        if(!verifyAllFieldsEntered()){
+            return;
+        }
 
 //        if (stepsFin)
 
@@ -381,13 +399,23 @@ public class MainController {
     Circle timeDot, timeCircle;
 
     private boolean verifyAllFieldsEntered(){
-        for (TextField[] fld : allFlds) {
-            for (TextField textField : fld) {
-                if (textField.getText() == null || textField.getText().isBlank()){
-                    return false;
-                }
+        boolean containsSomething = false;
+
+        for (TextField fld : allMinMaxFields) {
+            if (fld.getText() != null || !fld.getText().isBlank()){
+                containsSomething = true;
+                break;
             }
         }
+
+        if (!containsSomething) return false;
+
+        for (int i = 0; i < allMinMaxFields.length; i+=2) {
+            if (!checkValidationOfMinMax(i)){
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -424,7 +452,7 @@ public class MainController {
                     continue;
                 }
 
-                heading.setText(step.getHeading());
+                heading.setText(step.getHeading().equals("~") ? step.getStepNumber() : step.getHeading());
 
                 try {
                     speechEngine.say(step.getSpokenPhrase());
@@ -436,9 +464,6 @@ public class MainController {
             }
         }
     }
-
-
-
 
 
     private void speakStep(String text){
@@ -464,13 +489,12 @@ public class MainController {
 
     private final BooleanProperty nextStep = new SimpleBooleanProperty(true);
 
-
     private void countDownStep(int seconds){
         var time = LocalTime.now();
         var timeDone = time.plusSeconds(seconds);
 
-        var currentSec = seconds;
-        timeText.setText(String.valueOf(currentSec));
+        AtomicInteger currentSec = new AtomicInteger(seconds);
+        timeText.setText(String.valueOf(currentSec.get()));
 
 
         try {
@@ -479,21 +503,20 @@ public class MainController {
             } else {
                 Thread.sleep(500);
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (InterruptedException ignored) {}
 
         while (true){
             if (stopProcessingSteps.get()){
                 break;
             }
             var tmp = LocalTime.now();
+            // Platform.runLater(()-> );
+            // seconds are finished counting
             if (tmp.isAfter(timeDone)){
-                timeText.setText(String.valueOf(currentSec));
+                Platform.runLater(()-> timeText.setText(String.valueOf(currentSec.get())));
                 break;
             }
-
-            timeText.setText(String.valueOf(currentSec--));
+            Platform.runLater(()-> timeText.setText(String.valueOf(currentSec.getAndDecrement())));
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

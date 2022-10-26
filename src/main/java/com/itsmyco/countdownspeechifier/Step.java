@@ -5,16 +5,22 @@ public class Step {
     private int min;
     private int max;
     private String spokenPhrase;
+    private int stepNumber;
 
-    public Step(String heading, int min, int max, String spokenPhrase) {
+    public Step(int stepNumber, String heading, int min, int max, String spokenPhrase) {
         this.heading = heading;
         this.min = min;
         this.max = max;
         this.spokenPhrase = spokenPhrase;
+        this.stepNumber = stepNumber;
     }
 
     public String getHeading() {
         return heading;
+    }
+
+    public String getStepNumber() {
+        return "STEP " + stepNumber;
     }
 
     public void setHeading(String heading) {

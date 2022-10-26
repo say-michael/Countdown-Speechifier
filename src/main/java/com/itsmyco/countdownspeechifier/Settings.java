@@ -31,7 +31,7 @@ public class Settings {
                     var arr = input.nextLine().split("§");
                     var a = arr[0].equals("~") ? "" : arr[0];
                     var d = arr[3].equals("~") ? "" : arr[3];
-                    steps[index++] = new Step(a, Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), d);
+                    steps[index++] = new Step(index, a, Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), d);
                 }
                 input.close();
             } catch (FileNotFoundException e) {

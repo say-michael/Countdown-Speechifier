@@ -1,6 +1,7 @@
 package com.itsmyco.countdownspeechifier;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -16,6 +17,8 @@ public class MainApplication extends Application {
         stage.setResizable(false);
         stage.setScene(scene);
         stage.show();
+
+        Platform.setImplicitExit(false);
     }
 
     public static void main(String[] args) {
@@ -26,5 +29,6 @@ public class MainApplication extends Application {
     public void stop() throws Exception {
         super.stop();
         MainController.executor.shutdownNow();
+        Platform.exit();
     }
 }
