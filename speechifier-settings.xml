@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<steps>
+    <step>
+        <heading>Moo</heading>
+        <min>7</min>
+        <max>10</max>
+        <spoken-phrase>Say Moo</spoken-phrase>
+        <step-number>1</step-number>
+    </step>
+    <step>
+        <heading>~</heading>
+        <min>-1</min>
+        <max>-1</max>
+        <spoken-phrase>~</spoken-phrase>
+        <step-number>2</step-number>
+    </step>
+    <step>
+        <heading>~</heading>
+        <min>-1</min>
+        <max>-1</max>
+        <spoken-phrase>~</spoken-phrase>
+        <step-number>3</step-number>
+    </step>
+    <step>
+        <heading>~</heading>
+        <min>-1</min>
+        <max>-1</max>
+        <spoken-phrase>~</spoken-phrase>
+        <step-number>4</step-number>
+    </step>
+</steps>

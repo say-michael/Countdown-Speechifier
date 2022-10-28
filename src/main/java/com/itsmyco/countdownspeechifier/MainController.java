@@ -160,7 +160,7 @@ public class MainController {
                 return number >= minNumber;
             }
         } catch (NumberFormatException e){
-            return true;
+            return false;
         }
     }
 
@@ -254,7 +254,6 @@ public class MainController {
     public void onSelectVoice(){
         choiceDialog.showAndWait();
     }
-    @FXML Text saveSettingsText;
 
     public void onSaveSettings() throws JAXBException {
         this.steps.getSteps().clear();
@@ -266,28 +265,28 @@ public class MainController {
         Step[] steps = new Step[4];
 
         steps[0] = new Step(1,
-                step1Flds[0].getText().isBlank() ? "~" : step1Flds[0].getText(),
+                step1Flds[0].getText(),
                 Integer.parseInt(step1Flds[1].getText().isBlank() ? "-1" : step1Flds[1].getText()),
                 Integer.parseInt(step1Flds[2].getText().isBlank() ? "-1" : step1Flds[2].getText()),
-                step1Flds[3].getText().isBlank() ? "~" : step1Flds[3].getText()
+                step1Flds[3].getText()
         );
         steps[1] = new Step(2,
-                step2Flds[0].getText().isBlank() ? "~" : step2Flds[0].getText(),
+                step2Flds[0].getText(),
                 Integer.parseInt(step2Flds[1].getText().isBlank() ? "-1" : step2Flds[1].getText()),
                 Integer.parseInt(step2Flds[2].getText().isBlank() ? "-1" : step2Flds[2].getText()),
-                step2Flds[3].getText().isBlank() ? "~" : step2Flds[3].getText()
+                step2Flds[3].getText()
         );
         steps[2] = new Step(3,
-                step3Flds[0].getText().isBlank() ? "~" : step3Flds[0].getText(),
+                step3Flds[0].getText(),
                 Integer.parseInt(step3Flds[1].getText().isBlank() ? "-1" : step3Flds[1].getText()),
                 Integer.parseInt(step3Flds[2].getText().isBlank() ? "-1" : step3Flds[2].getText()),
-                step3Flds[3].getText().isBlank() ? "~" : step3Flds[3].getText()
+                step3Flds[3].getText()
         );
         steps[3] = new Step(4,
-                step4Flds[0].getText().isBlank() ? "~" : step4Flds[0].getText(),
+                step4Flds[0].getText(),
                 Integer.parseInt(step4Flds[1].getText().isBlank() ? "-1" : step4Flds[1].getText()),
                 Integer.parseInt(step4Flds[2].getText().isBlank() ? "-1" : step4Flds[2].getText()),
-                step4Flds[3].getText().isBlank() ? "~" : step4Flds[3].getText()
+                step4Flds[3].getText()
         );
         return steps;
     }
@@ -316,7 +315,7 @@ public class MainController {
 
         // show views
         timeView.setVisible(true);
-        heading.setText("Heading");
+//        heading.setText("Step");
 
         stepIndex = 0;
         executor.execute(()-> startTheSteps(makeSteps()));
@@ -339,6 +338,9 @@ public class MainController {
     @FXML
     Circle timeDot, timeCircle;
 
+    public void onAppScreen(){
+        appScreen.requestFocus();
+    }
     private boolean verifyAllFieldsEntered(){
         boolean containsSomething = false;
 
@@ -352,12 +354,12 @@ public class MainController {
         if (!containsSomething) return false;
 
         for (int i = 0; i < allMinMaxFields.length; i+=2) {
-            if (!checkValidationOfMinMax(i)){
-                return false;
+            if (checkValidationOfMinMax(i)){
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     final AtomicBoolean stopProcessingSteps = new AtomicBoolean(false);
@@ -368,7 +370,7 @@ public class MainController {
                 nextStep.set(false);
 
                 var step = steps[stepIndex++ % 4];
-                System.out.println(stepIndex + " = " + step);
+
 
                 if (step.getMin() < 0 || step.getMax() <= 0) {
                     nextStep.set(true);
@@ -383,9 +385,9 @@ public class MainController {
                 int seconds;
 
                 if (step.getMin() == step.getMax()) {
-                    seconds = new Random().nextInt(step.getMin());
+                    seconds = step.getMin();
                 } else {
-                    seconds = new Random().nextInt(step.getMin(), step.getMax());
+                    seconds = new Random().nextInt(step.getMin(), step.getMax() + 1);
                 }
 
                 if (seconds == 0) {
@@ -393,36 +395,27 @@ public class MainController {
                     continue;
                 }
 
-                heading.setText(step.getHeading().equals("~") ? step.getStepNumber() : step.getHeading());
+                heading.setText(step.getHeading().isBlank() ? step.getStepNumber() : step.getHeading());
 
                 try {
                     speechEngine.say(step.getSpokenPhrase());
+                    timeText.setText(String.valueOf(seconds));
+
+                    var words = step.getSpokenPhrase().split(" ").length;
+                    System.out.println("Sleeping");
+                    Thread.sleep(285 * words);
+                    System.out.println("I'm Awake");
+
+                    countDownStep(seconds);
+
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
 
-                countDownStep(seconds);
             }
         }
-    }
-
-
-    private void speakStep(String text){
-        try {
-            speechEngine.say(text);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void animateTimeDot(int seconds){
-        var pt = new PathTransition();
-        pt.setNode(timeDot);
-        pt.setPath(timeCircle);
-        pt.setDuration(Duration.seconds(seconds));
-        pt.setInterpolator(Interpolator.LINEAR);
-        pt.play();
     }
 
     @FXML private Text heading;
@@ -436,15 +429,7 @@ public class MainController {
 
         AtomicInteger currentSec = new AtomicInteger(seconds);
         timeText.setText(String.valueOf(currentSec.get()));
-
-
-        try {
-            if (seconds < 4){
-                Thread.sleep(1000);
-            } else {
-                Thread.sleep(500);
-            }
-        } catch (InterruptedException ignored) {}
+//        try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
 
         while (true){
             if (stopProcessingSteps.get()){
@@ -475,7 +460,8 @@ public class MainController {
         startBtn.setBackground(new Background(new BackgroundFill(Color.web("#10403b"), new CornerRadii(50, true), null)));
     }
 
-    public void onClose(ActionEvent actionEvent) {
+    public void onClose(ActionEvent actionEvent) throws JAXBException {
+        onSaveSettings();
         onStop();
         executor.shutdownNow();
         Platform.exit();
@@ -483,7 +469,7 @@ public class MainController {
 
     public void onSaveAs(ActionEvent actionEvent) throws JAXBException {
         var chooser = new FileChooser();
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", ".xml"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.xml"));
         chooser.setTitle("Save Settings");
         chooser.setInitialFileName("settings");
 
@@ -491,13 +477,19 @@ public class MainController {
         Settings.saveSteps(steps,file);
     }
 
-    public void onImport(ActionEvent actionEvent) throws JAXBException {
+    public void onImport(ActionEvent actionEvent) {
         var chooser = new FileChooser();
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", ".xml"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.xml"));
         chooser.setTitle("Import Settings");
 
         var file = chooser.showOpenDialog(step1Min.getScene().getWindow());
-        var steps = Settings.loadSteps(file);
+        Steps steps = null;
+        try {
+            steps = Settings.loadSteps(file);
+        } catch (JAXBException e) {
+           // steps error
+            steps = new Steps();
+        }
         this.steps = steps;
         loadStepsIntoFields(steps);
     }

@@ -15,8 +15,7 @@ public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("main.fxml"));
-        var view = (Parent) fxmlLoader.load();
-        Scene scene = new Scene(view, 671, 600);
+        Scene scene = new Scene(fxmlLoader.load(), 671, 600);
         stage.setTitle("Countdown Speechifier");
         stage.setResizable(false);
         stage.setScene(scene);
@@ -31,8 +30,7 @@ public class MainApplication extends Application {
     }
 
     @Override
-    public void stop() throws Exception {
-        super.stop();
+    public void stop(){
         MainController.executor.shutdownNow();
         Platform.exit();
     }

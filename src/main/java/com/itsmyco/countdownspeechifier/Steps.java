@@ -15,10 +15,10 @@ public class Steps {
     List<Step> steps = new ArrayList<>();
 
     public Steps(){
-        steps.add(Step.blank(1));
-        steps.add(Step.blank(2));
-        steps.add(Step.blank(3));
-        steps.add(Step.blank(4));
+        steps.add(new Step(1));
+        steps.add(new Step(2));
+        steps.add(new Step(3));
+        steps.add(new Step(4));
     }
 
     public List<Step> getSteps() {

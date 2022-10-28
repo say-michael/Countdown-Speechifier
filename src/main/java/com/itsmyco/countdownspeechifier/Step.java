@@ -16,6 +16,13 @@ public class Step {
     @XmlElement(name = "step-number")
     private int stepNumber;
 
+    public Step(){
+        this(0);
+    }
+
+    public Step(int stepNumber){
+        this(stepNumber, "", -1, -1, "");
+    }
 
     public Step(int stepNumber, String heading, int min, int max, String spokenPhrase) {
         this.heading = heading;
@@ -24,11 +31,6 @@ public class Step {
         this.spokenPhrase = spokenPhrase;
         this.stepNumber = stepNumber;
     }
-
-    public static Step blank(int number) {
-        return new Step(number, "", -1, -1, "");
-    }
-
     public String getHeading() {
         return heading;
     }

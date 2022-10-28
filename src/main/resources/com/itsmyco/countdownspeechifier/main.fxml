@@ -1,26 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.input.KeyCodeCombination?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
 
-<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="671.0" style="-fx-background-color: #bfbfbf;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.itsmyco.countdownspeechifier.MainController">
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="671.0" style="-fx-background-color: #bfbfbf;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.itsmyco.countdownspeechifier.MainController">
    <children>
-      <BorderPane fx:id="appScreen">
+      <BorderPane fx:id="appScreen" focusTraversable="true" onMouseClicked="#onAppScreen">
          <top>
             <StackPane prefHeight="80.0" prefWidth="200.0" style="-fx-background-color: #10403b; -fx-background-radius: 20;" BorderPane.alignment="CENTER">
                <children>
@@ -94,13 +84,13 @@
                                  <center>
                                     <HBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step1Min" alignment="CENTER" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" styleClass="focus" />
+                                          <TextField fx:id="step1Min" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" styleClass="focus" />
                                           <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                              <image>
                                                 <Image url="@wall-clock.png" />
                                              </image>
                                           </ImageView>
-                                          <TextField fx:id="step1Max" alignment="CENTER" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step1Max" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </center>
@@ -112,7 +102,7 @@
                                        <children>
                                           <Pane>
                                              <children>
-                                                <TextField fx:id="step1SpokenPhrase" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
+                                                <TextField fx:id="step1SpokenPhrase" focusTraversable="false" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
                                                 <StackPane prefHeight="24.0" translateX="138.0">
                                                    <children>
                                                       <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -130,7 +120,7 @@
                                  <left>
                                     <HBox BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step1heading" promptText="Heading" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step1heading" focusTraversable="false" promptText="Heading" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </left>
@@ -165,13 +155,13 @@
                                  <center>
                                     <HBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step2Min" alignment="CENTER" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step2Min" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
                                           <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                              <image>
                                                 <Image url="@wall-clock.png" />
                                              </image>
                                           </ImageView>
-                                          <TextField fx:id="step2Max" alignment="CENTER" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step2Max" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </center>
@@ -183,7 +173,7 @@
                                        <children>
                                           <Pane>
                                              <children>
-                                                <TextField fx:id="step2SpokenPhrase" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
+                                                <TextField fx:id="step2SpokenPhrase" focusTraversable="false" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
                                                 <StackPane prefHeight="24.0" translateX="138.0">
                                                    <children>
                                                       <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -201,7 +191,7 @@
                                  <left>
                                     <HBox BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step2heading" promptText="Heading" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step2heading" focusTraversable="false" promptText="Heading" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </left>
@@ -236,13 +226,13 @@
                                  <center>
                                     <HBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step3Min" alignment="CENTER" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step3Min" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
                                           <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                              <image>
                                                 <Image url="@wall-clock.png" />
                                              </image>
                                           </ImageView>
-                                          <TextField fx:id="step3Max" alignment="CENTER" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step3Max" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </center>
@@ -252,7 +242,7 @@
                                  <left>
                                     <HBox BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step3heading" promptText="Heading" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step3heading" focusTraversable="false" promptText="Heading" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </left>
@@ -261,7 +251,7 @@
                                        <children>
                                           <Pane>
                                              <children>
-                                                <TextField fx:id="step3SpokenPhrase" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
+                                                <TextField fx:id="step3SpokenPhrase" focusTraversable="false" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
                                                 <StackPane prefHeight="24.0" translateX="138.0">
                                                    <children>
                                                       <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -307,13 +297,13 @@
                                  <center>
                                     <HBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step4Min" alignment="CENTER" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step4Min" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Min" style="-fx-background-radius: 20;" />
                                           <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                              <image>
                                                 <Image url="@wall-clock.png" />
                                              </image>
                                           </ImageView>
-                                          <TextField fx:id="step4Max" alignment="CENTER" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step4Max" alignment="CENTER" focusTraversable="false" prefColumnCount="2" promptText="Max" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </center>
@@ -325,7 +315,7 @@
                                        <children>
                                           <Pane>
                                              <children>
-                                                <TextField fx:id="step4SpokenPhrase" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
+                                                <TextField fx:id="step4SpokenPhrase" focusTraversable="false" promptText="Spoken Phrase" style="-fx-background-radius: 20;" />
                                                 <StackPane prefHeight="24.0" translateX="138.0">
                                                    <children>
                                                       <ImageView fitHeight="150.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -343,7 +333,7 @@
                                  <left>
                                     <HBox BorderPane.alignment="CENTER">
                                        <children>
-                                          <TextField fx:id="step4heading" promptText="Heading" style="-fx-background-radius: 20;" />
+                                          <TextField fx:id="step4heading" focusTraversable="false" promptText="Heading" style="-fx-background-radius: 20;" />
                                        </children>
                                     </HBox>
                                  </left>
@@ -430,7 +420,7 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
                <items>
-              <MenuItem mnemonicParsing="false" text="Select Voice">
+              <MenuItem mnemonicParsing="false" onAction="#onSelectVoice" text="Select Voice">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="V" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
                      </accelerator>
