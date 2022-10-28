@@ -5,11 +5,13 @@ import io.github.jonelo.jAdapterForNativeTTS.engines.SpeechEngineNative;
 import io.github.jonelo.jAdapterForNativeTTS.engines.Voice;
 import io.github.jonelo.jAdapterForNativeTTS.engines.VoicePreferences;
 import io.github.jonelo.jAdapterForNativeTTS.engines.exceptions.NotSupportedOperatingSystemException;
+import jakarta.xml.bind.JAXBException;
 import javafx.animation.Interpolator;
 import javafx.animation.PathTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.ChoiceBox;
@@ -21,10 +23,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +56,7 @@ public class MainController {
 
     TextField[][] allFlds;
     @FXML
-    HBox selectVoiceBtn, saveSettingsBtn, startBtn;
+    HBox startBtn;
 
     @FXML
     BorderPane displayScreen;
@@ -64,7 +68,7 @@ public class MainController {
     @FXML BorderPane appScreen;
 
     @FXML
-    private void initialize(){
+    private void initialize() throws JAXBException {
 
         speechEngine.setVoice(voiceList.get(0).getName());
 
@@ -77,27 +81,11 @@ public class MainController {
 
         allMinMaxFields = new TextField[]{step1Min, step1Max, step2Min, step2Max, step3Min, step3Max, step4Min, step4Max};
 
-        var steps = settings.load();
-        if (steps != null){
-            step1Flds[0].setText(steps[0].getHeading());
-            step1Flds[1].setText(String.valueOf(steps[0].getMin() < 0 ? "" : steps[0].getMin()));
-            step1Flds[2].setText(String.valueOf(steps[0].getMax() < 0 ? "" : steps[0].getMax()));
-            step1Flds[3].setText(steps[0].getSpokenPhrase());
+        var stepsObj = Settings.loadSteps();
 
-            step2Flds[0].setText(steps[1].getHeading());
-            step2Flds[1].setText(String.valueOf(steps[1].getMin() < 0 ? "" : steps[1].getMin()));
-            step2Flds[2].setText(String.valueOf(steps[1].getMax() < 0 ? "" : steps[1].getMax()));
-            step2Flds[3].setText(steps[1].getSpokenPhrase());
-
-            step3Flds[0].setText(steps[2].getHeading());
-            step3Flds[1].setText(String.valueOf(steps[2].getMin() < 0 ? "" : steps[2].getMin()));
-            step3Flds[2].setText(String.valueOf(steps[2].getMax() < 0 ? "" : steps[2].getMax()));
-            step3Flds[3].setText(steps[2].getSpokenPhrase());
-
-            step4Flds[0].setText(steps[3].getHeading());
-            step4Flds[1].setText(String.valueOf(steps[3].getMin() < 0 ? "" : steps[3].getMin()));
-            step4Flds[2].setText(String.valueOf(steps[3].getMax() < 0 ? "" : steps[3].getMax()));
-            step4Flds[3].setText(steps[3].getSpokenPhrase());
+        if (stepsObj != null){
+            this.steps = new Steps();
+            loadStepsIntoFields(stepsObj);
         }
 
         choiceDialog.selectedItemProperty().addListener((o, oldValue, newValue) -> {
@@ -132,6 +120,32 @@ public class MainController {
 //        }
 
     }
+
+    private void loadStepsIntoFields(Steps stepsObj){
+        var steps = stepsObj.steps.toArray(Step[]::new);
+
+        step1Flds[0].setText(steps[0].getHeading());
+        step1Flds[1].setText(String.valueOf(steps[0].getMin() < 0 ? "" : steps[0].getMin()));
+        step1Flds[2].setText(String.valueOf(steps[0].getMax() < 0 ? "" : steps[0].getMax()));
+        step1Flds[3].setText(steps[0].getSpokenPhrase());
+
+        step2Flds[0].setText(steps[1].getHeading());
+        step2Flds[1].setText(String.valueOf(steps[1].getMin() < 0 ? "" : steps[1].getMin()));
+        step2Flds[2].setText(String.valueOf(steps[1].getMax() < 0 ? "" : steps[1].getMax()));
+        step2Flds[3].setText(steps[1].getSpokenPhrase());
+
+        step3Flds[0].setText(steps[2].getHeading());
+        step3Flds[1].setText(String.valueOf(steps[2].getMin() < 0 ? "" : steps[2].getMin()));
+        step3Flds[2].setText(String.valueOf(steps[2].getMax() < 0 ? "" : steps[2].getMax()));
+        step3Flds[3].setText(steps[2].getSpokenPhrase());
+
+        step4Flds[0].setText(steps[3].getHeading());
+        step4Flds[1].setText(String.valueOf(steps[3].getMin() < 0 ? "" : steps[3].getMin()));
+        step4Flds[2].setText(String.valueOf(steps[3].getMax() < 0 ? "" : steps[3].getMax()));
+        step4Flds[3].setText(steps[3].getSpokenPhrase());
+    }
+
+    private Steps steps = new Steps();
 
     private boolean checkValidationOfMinMax(int fldIndex){
         var fld = allMinMaxFields[fldIndex];
@@ -221,24 +235,6 @@ public class MainController {
         }
     }
 
-    private void toggleInValidField(boolean on, TextField fld){
-        if (on){
-            fld.setBorder(new Border(new BorderStroke(
-                    Color.RED,
-                    BorderStrokeStyle.SOLID,
-                    new CornerRadii(20),
-                    new BorderWidths(3)
-            )));
-        } else {
-            fld.setBorder(null);
-        }
-    }
-
-    private final Settings settings = new Settings();
-
-    private boolean isVoiceOptionsShown = false;
-
-    private final VoicePreferences voicePreferences = new VoicePreferences();
     private SpeechEngine speechEngine;
 
     {
@@ -255,43 +251,15 @@ public class MainController {
 
     private String selectedVoice = voiceDescriptions.get(0);
     private final ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(selectedVoice, voiceDescriptions);
-    @FXML HBox voiceOptions;
     public void onSelectVoice(){
-
         choiceDialog.showAndWait();
-
-
-//        var sc = new Timeline();
-//        if (isVoiceOptionsShown){
-//            sc.stop();
-//            sc.getKeyFrames().clear();
-//            sc.getKeyFrames().add(
-//                    new KeyFrame(Duration.millis(1000),
-//                            new KeyValue(voiceOptions.prefHeightProperty(),0),
-//                            new KeyValue(voiceOptions.translateYProperty(),-5)
-//                    )
-//            );
-//
-//            isVoiceOptionsShown = false;
-//        } else {
-//            // show voice options
-//            sc.stop();
-//            sc.getKeyFrames().clear();
-//            sc.getKeyFrames().add(
-//                    new KeyFrame(Duration.millis(1000),
-//                            new KeyValue(voiceOptions.prefHeightProperty(),60),
-//                            new KeyValue(voiceOptions.translateYProperty(),-14)
-//                    )
-//            );
-//            isVoiceOptionsShown = true;
-//        }
-//        sc.play();
     }
     @FXML Text saveSettingsText;
 
-    public void onSaveSettings(){
-        saveSettingsText.setText("Saved");
-        settings.save(makeSteps());
+    public void onSaveSettings() throws JAXBException {
+        this.steps.getSteps().clear();
+        this.steps.getSteps().addAll(Arrays.asList(makeSteps()));
+        Settings.saveSteps(steps);
     }
 
     private Step[] makeSteps(){
@@ -324,27 +292,7 @@ public class MainController {
         return steps;
     }
 
-    public void onMaleVoice(){
-        voicePreferences.setGender(VoicePreferences.Gender.MALE);
-        maleText.setFont(new Font("Arial Rounded MT Bold", 13));
-        femaleText.setFont(new Font("System", 13));
-        maleText.setFill(Color.BLACK);
-        femaleText.setFill(new Color(0.5529, 0.5529, 0.5529, 1.0));
-
-    }
-    public void onFemaleVoice(){
-        voicePreferences.setGender(VoicePreferences.Gender.FEMALE);
-        femaleText.setFont(new Font("Arial Rounded MT Bold", 13));
-        maleText.setFont(new Font("System", 13));
-        femaleText.setFill(Color.BLACK);
-        maleText.setFill(new Color(0.5529, 0.5529, 0.5529, 1.0));
-    }
-
-    private Thread runningStepsThread;
-    @FXML private Text startText, maleText, femaleText;
-
-    @FXML
-    ChoiceBox<String> voiceChoices;
+    @FXML private Text startText;
 
     public void onStart(){
 
@@ -363,9 +311,7 @@ public class MainController {
 
         // hide views
         stepsView.setVisible(false);
-        selectVoiceBtn.setVisible(false);
-        saveSettingsBtn.setVisible(false);
-        voiceOptions.setVisible(false);
+
         startText.setText("STOP");
 
         // show views
@@ -374,10 +320,8 @@ public class MainController {
 
         stepIndex = 0;
         executor.execute(()-> startTheSteps(makeSteps()));
-//        f = executor.execute(()-> startTheSteps(makeSteps()));
     }
     static final ExecutorService executor = Executors.newCachedThreadPool();
-    private Future<?> f;
     public void onStop(){
 //        executor.submit(()->{}).
 //        f.cancel(true);
@@ -387,9 +331,6 @@ public class MainController {
 
         // show views
         stepsView.setVisible(true);
-        selectVoiceBtn.setVisible(true);
-        saveSettingsBtn.setVisible(true);
-        voiceOptions.setVisible(true);
 
         startText.setText("START");
         heading.setText("SETTINGS");
@@ -517,21 +458,12 @@ public class MainController {
                 break;
             }
             Platform.runLater(()-> timeText.setText(String.valueOf(currentSec.getAndDecrement())));
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            // countdown in seconds
+            try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
         }
-
-        nextStep.set(true);
-    }
-    public void btnHover(HBox btn){
-        btn.setBackground(new Background(new BackgroundFill(Color.web("#127369"), new CornerRadii(20), null)));
-    }
-
-    public void btnHoverDone(HBox btn){
-        btn.setBackground(new Background(new BackgroundFill(Color.web("#10403b"), new CornerRadii(20), null)));
+        // wait 1/2 second before moving to next step
+        try {Thread.sleep(500);} catch (InterruptedException ignored) {}
+        nextStep.set(true); // start next step
     }
 
     public void startHover(){
@@ -543,20 +475,39 @@ public class MainController {
         startBtn.setBackground(new Background(new BackgroundFill(Color.web("#10403b"), new CornerRadii(50, true), null)));
     }
 
-
-    public void selectVoiceHover(){
-        btnHover(selectVoiceBtn);
+    public void onClose(ActionEvent actionEvent) {
+        onStop();
+        executor.shutdownNow();
+        Platform.exit();
     }
 
-    public void selectVoiceHoverDone(){
-        btnHoverDone(selectVoiceBtn);
+    public void onSaveAs(ActionEvent actionEvent) throws JAXBException {
+        var chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", ".xml"));
+        chooser.setTitle("Save Settings");
+        chooser.setInitialFileName("settings");
+
+        var file = chooser.showSaveDialog(step1Min.getScene().getWindow());
+        Settings.saveSteps(steps,file);
     }
 
-    public void saveSettingsHover(){
-        btnHover(saveSettingsBtn);
+    public void onImport(ActionEvent actionEvent) throws JAXBException {
+        var chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", ".xml"));
+        chooser.setTitle("Import Settings");
+
+        var file = chooser.showOpenDialog(step1Min.getScene().getWindow());
+        var steps = Settings.loadSteps(file);
+        this.steps = steps;
+        loadStepsIntoFields(steps);
     }
 
-    public void saveSettingsHoverDone(){
-        btnHoverDone(saveSettingsBtn);
+    public void onClearFields(ActionEvent actionEvent) {
+        this.steps = new Steps();
+        for (TextField[] allFld : allFlds) {
+            for (TextField textField : allFld) {
+                textField.clear();
+            }
+        }
     }
 }

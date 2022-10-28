@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
@@ -36,47 +38,8 @@
          <bottom>
             <StackPane BorderPane.alignment="CENTER">
                <children>
-                  <Pane maxHeight="50.0" maxWidth="323.0" prefWidth="20.0" style="-fx-background-radius: 20; -fx-background-color: rgb(236,236,236);" visible="false" />
                   <HBox alignment="CENTER" spacing="10.0">
                      <children>
-                        <StackPane>
-                           <children>
-                              <HBox fx:id="voiceOptions" layoutX="10.0" layoutY="34.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" opacity="0.48" prefHeight="0.0" prefWidth="100.0" spacing="5.0" style="-fx-background-color: white; -fx-background-radius: 16;" translateY="-5.0">
-                                 <padding>
-                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                 </padding>
-                                 <children>
-                                    <Text fx:id="maleText" onMouseClicked="#onMaleVoice" strokeType="OUTSIDE" strokeWidth="0.0" text="Male">
-                                       <cursor>
-                                          <Cursor fx:constant="HAND" />
-                                       </cursor>
-                                       <font>
-                                          <Font name="Arial Rounded MT Bold" size="13.0" />
-                                       </font>
-                                    </Text>
-                                    <Region prefHeight="200.0" prefWidth="200.0" />
-                                    <Line endX="-357.1025085449219" endY="-806.5232543945312" opacity="0.6" startX="-357.1025085449219" startY="-792.9628295898438" stroke="#bfbfbf" />
-                                    <Text fx:id="femaleText" fill="#8d8d8d" layoutX="18.0" layoutY="31.0" onMouseClicked="#onFemaleVoice" strokeType="OUTSIDE" strokeWidth="0.0" text="Female">
-                                       <cursor>
-                                          <Cursor fx:constant="HAND" />
-                                       </cursor>
-                                    </Text>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="selectVoiceBtn" alignment="CENTER" maxHeight="10.0" maxWidth="50.0" minWidth="100.0" onMouseClicked="#onSelectVoice" onMouseEntered="#selectVoiceHover" onMouseExited="#selectVoiceHoverDone" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
-                                 <children>
-                                    <StackPane>
-                                       <children>
-                                          <Text fill="#f8f8f8" strokeType="OUTSIDE" strokeWidth="0.0" text="Select Voice" />
-                                       </children>
-                                    </StackPane>
-                                 </children>
-                                 <padding>
-                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                 </padding>
-                              </HBox>
-                           </children>
-                        </StackPane>
                         <HBox fx:id="startBtn" alignment="CENTER" layoutX="289.0" layoutY="10.0" minHeight="80.0" minWidth="80.0" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
                            <children>
                               <StackPane onMouseClicked="#onStart" onMouseEntered="#startHover" onMouseExited="#startHoverDone">
@@ -86,18 +49,6 @@
                                           <Font name="Arial Rounded MT Bold" size="20.0" />
                                        </font>
                                     </Text>
-                                 </children>
-                              </StackPane>
-                           </children>
-                           <padding>
-                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                           </padding>
-                        </HBox>
-                        <HBox fx:id="saveSettingsBtn" alignment="CENTER" layoutX="331.0" layoutY="10.0" maxHeight="10.0" maxWidth="50.0" minWidth="100.0" onMouseClicked="#onSaveSettings" onMouseEntered="#saveSettingsHover" onMouseExited="#saveSettingsHoverDone" spacing="5.0" style="-fx-background-color: #10403b #10403b; -fx-background-radius: 40;">
-                           <children>
-                              <StackPane>
-                                 <children>
-                                    <Text fx:id="saveSettingsText" fill="#f8f8f8" strokeType="OUTSIDE" strokeWidth="0.0" text="Save Settings" />
                                  </children>
                               </StackPane>
                            </children>
@@ -440,5 +391,59 @@
             </StackPane>
          </center>
       </BorderPane>
+      <MenuBar disable="true" style="-fx-use-system-menu-bar: true;">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#onStart" text="Start">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="R" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onStop" text="Stop">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="F" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" onAction="#onClose" text="Close">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="W" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onSaveSettings" text="Save">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onSaveAs" text="Save As...">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="DOWN" shift="DOWN" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" onAction="#onImport" text="Import">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="I" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+               <items>
+              <MenuItem mnemonicParsing="false" text="Select Voice">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="V" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onClearFields" text="Clear Fields" />
+               </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
    </children>
 </StackPane>
